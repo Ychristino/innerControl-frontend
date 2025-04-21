@@ -11,12 +11,12 @@ export default function ProdutoIndex(){
         {
             icon: <AddIcon />,
             label: "Cadastrar Produto",
-            onClick: () => navigate("/produto/cadastro"),
+            onClick: () => navigate("/produtos/cadastro"),
         },
         {
             icon: <ListIcon />,
             label: "Listar Produtos",
-            onClick: () => navigate("/produto/lista"),
+            onClick: () => navigate("/produtos/lista"),
         },
     ];
 

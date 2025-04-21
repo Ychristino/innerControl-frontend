@@ -4,7 +4,6 @@ import { FormFrame } from '../../components/formFrame';
 import { Add, Remove, Delete } from '@mui/icons-material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import Grid from '@mui/material/Grid2';
-import MonetaryInput from '../../components/monetaryInput';
 import PessoaFisicaAutoComplete from '../../components/autoCompletePessoaFisica';
 
 function DatasServico({ servico, handleChange, errors }) {
@@ -42,19 +41,19 @@ function DatasServico({ servico, handleChange, errors }) {
 }
 
 function ValorServico({ servico, handleChange, errors }) {
-  return (
-    <MonetaryInput
-        fullWidth
-        label="Valor do Serviço"
-        name="valorServico"
-        value={servico.valorServico}
-        onChange={handleChange}
-        margin="normal"
-        required
-        error={!!errors.valorServico}
-        helperText={errors.valorServico || ''}
-      />
-  );
+  // return (
+    // <MonetaryInput
+    //     fullWidth
+    //     label="Valor do Serviço"
+    //     name="valorServico"
+    //     value={servico.valorServico}
+    //     onChange={handleChange}
+    //     margin="normal"
+    //     required
+    //     error={!!errors.valorServico}
+    //     helperText={errors.valorServico || ''}
+    //   />
+  // );
 }
 
 function ListaProdutos({ servico, handleAddProduto, handleRemoveProduto, handleUpdateQuantidade, produtosDisponiveis }) {

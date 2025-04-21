@@ -1,78 +1,77 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { Box, Typography, List, ListItem, CircularProgress } from '@mui/material';
-import { useInView } from 'react-intersection-observer';
+import React, { useState, useEffect } from 'react';
+import { TextField, Paper, Grid, Typography, CircularProgress, Button } from '@mui/material';
 import pessoaService from '../../services/pessoaFisicaService';
+import PessoaCard from '../../components/cardPessoaFisica';
 
-const PessoaInfiniteList = () => {
-  const [pessoas, setPessoas] = useState([]);
-  const [pagina, setPagina] = useState(0);
-  const [temMais, setTemMais] = useState(true);
-  const [carregando, setCarregando] = useState(false);
-  const { ref, inView } = useInView();
-  const travado = useRef(false);
+export default function ListaPessoas() {
+  const [pessoas, setPessoas] = useState([]);  // Dados carregados da API
+  const [filteredPessoas, setFilteredPessoas] = useState([]);  // Dados filtrados localmente com base na busca
+  const [search, setSearch] = useState("");  // Estado da busca
+  const [loading, setLoading] = useState(false);  // Flag para controle do estado de carregamento
 
-  const itensPorPagina = 10;
-
-  useEffect(() => {
-    const carregarPessoas = async () => {
-      if (!temMais || carregando || travado.current) return;
-
-      setCarregando(true);
-      travado.current = true;
-
-      try {
-        const res = await pessoaService.getPaginated(pagina, itensPorPagina);
-        const novos = Array.isArray(res.data.content) ? res.data.content : [];
-
-        // Evita duplicatas com base no id
-        setPessoas((prev) => {
-          const idsExistentes = new Set(prev.map((p) => p.id));
-          const novosUnicos = novos.filter((p) => !idsExistentes.has(p.id));
-          return [...prev, ...novosUnicos];
-        });
-
-        setTemMais(novos.length === itensPorPagina);
-      } catch (error) {
-        console.error('Erro ao carregar pessoas:', error);
-      } finally {
-        setCarregando(false);
-        travado.current = false;
-      }
-    };
-
-    carregarPessoas();
-  }, [pagina]);
-
-  useEffect(() => {
-    if (inView && temMais && !carregando && !travado.current) {
-      setPagina((prev) => prev + 1);
+  // Função para carregar pessoas da API
+  const loadPessoas = async () => {
+    setLoading(true);
+    try {
+      const res = await pessoaService.getPaginated();  // Carrega as primeiras 10 pessoas
+      setPessoas(res.data.content);  // Atualiza o estado com as pessoas recebidas
+      setFilteredPessoas(res.data.content);  // Inicialmente, todos os dados estão visíveis
+    } catch (error) {
+      console.error('Erro ao carregar pessoas:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [inView, temMais, carregando]);
+  };
+
+  // Função de busca local (apenas nos dados carregados)
+  useEffect(() => {
+    if (search === "") {
+      setFilteredPessoas(pessoas);  // Se a busca estiver vazia, mostra todos os dados
+    } else {
+      setFilteredPessoas(
+        pessoas.filter((pessoa) =>
+          pessoa.nome.toLowerCase().includes(search.toLowerCase())  // Filtra por nome
+        )
+      );
+    }
+  }, [search, pessoas]);
+
+  // Carrega as pessoas quando o componente é montado
+  useEffect(() => {
+    loadPessoas();  // Carrega as pessoas da primeira página
+  }, []);
 
   return (
-    <Box p={3}>
-      <Typography variant="h6" gutterBottom>Lista de Pessoas</Typography>
-      <List>
-        {pessoas.map((pessoa) => (
-          <ListItem key={pessoa.id}>{pessoa.nome}</ListItem>
-        ))}
-      </List>
+    <div>
+      <Typography variant="h4" gutterBottom>Lista de Pessoas</Typography>
 
-      <div ref={ref} />
+      {/* Campo de busca */}
+      <TextField
+        fullWidth
+        label="Buscar por nome"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}  // Atualiza o estado de busca
+        variant="outlined"
+        margin="normal"
+      />
 
-      {carregando && (
-        <Box mt={2} display="flex" justifyContent="center">
+      {/* Exibe um carregamento enquanto os dados estão sendo carregados */}
+      {loading ? (
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <CircularProgress />
-        </Box>
+        </div>
+      ) : (
+        <Grid container spacing={2}>
+          {/* Exibe as pessoas filtradas */}
+          {filteredPessoas.map((pessoa) => (
+            <Grid item xs={12} key={pessoa.id}>
+              <Paper elevation={3} sx={{ padding: 2, width: '100%' }}>
+                <PessoaCard pessoa={pessoa} />  {/* Componente para exibir os dados básicos */}
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
       )}
-
-      {!temMais && !carregando && (
-        <Typography align="center" color="textSecondary" mt={2}>
-          Fim da lista
-        </Typography>
-      )}
-    </Box>
+    </div>
   );
-};
-
-export default PessoaInfiniteList;
+}

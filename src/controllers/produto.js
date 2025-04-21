@@ -1,15 +1,15 @@
 import { NOTIFICATIONS } from "../constants/notifications";
-import pessoaService from "../services/pessoaFisicaService";
+import produtoService from "../services/produtoService";
 
 const handleSubmit = (data, systemNotification, redirectTo) => {
-    pessoaService.create(data)
+    produtoService.create(data)
         .then((response) => {
-            systemNotification('Pessoa cadastrada com sucesso!', NOTIFICATIONS.SUCCESS);
+            systemNotification('Produto cadastrada com sucesso!', NOTIFICATIONS.SUCCESS);
             if(redirectTo)
                 redirectTo()    
         })
         .catch((response) => {
-            systemNotification(`Erro ao incluir pessoa! ${response.response.data[0].message}`, NOTIFICATIONS.ERROR);
+            systemNotification(`Erro ao incluir produto! ${response.response.data[0].message}`, NOTIFICATIONS.ERROR);
         });
 
 }

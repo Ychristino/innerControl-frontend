@@ -1,36 +1,47 @@
+import React from "react";
+import { Controller } from "react-hook-form";
 import { TextField } from "@mui/material";
 
-const formatarValor = (event, onChange) => {
-    const { name, value } = event.target;
-    
-    const apenasNumeros = value.replace(/[^\d]/g, '');
-    
-    const valorFormatado = (
-      Number(apenasNumeros) / 100
-    ).toLocaleString('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    });
-  
-    event.target.value = valorFormatado;
-    if (onChange){
-        onChange(event);
-    }
-    
-  };
+// Formata número para moeda BRL
+const formatToBRL = (value) => {
+  const numeric = parseFloat(value);
+  if (isNaN(numeric)) return "R$ 0,00";
+  return numeric.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+  });
+};
 
-export default function MonetaryInput({ label, name, value, margin, required, error, helperText, fullWidth, onChange }){
-    return(
+// Converte string formatada para número
+const parseToNumber = (value) => {
+  if (!value) return 0;
+  const numeric = parseFloat(value.replace(/[^\d]/g, "")) / 100;
+  return isNaN(numeric) ? 0 : numeric;
+};
+
+export function MonetaryInput({ control, name, label = "Valor", rules = {}, ...rest }) {
+  return (
+    <Controller
+      control={control}
+      name={name}
+      rules={rules}
+      render={({ field: { onChange, onBlur, value = 0, ref }, fieldState: { error } }) => (
         <TextField
-            fullWidth={fullWidth}
-            label={label}
-            name={name}
-            value={value}
-            onChange={(e) => formatarValor(e, onChange)}
-            margin={margin}
-            required={required}
-            error={error}
-            helperText={helperText}
+          fullWidth
+          inputRef={ref}
+          label={label}
+          value={formatToBRL(value)}
+          onChange={(e) => {
+            const rawValue = parseToNumber(e.target.value);
+            onChange(rawValue);
+          }}
+          onBlur={onBlur}
+          error={!!error}
+          helperText={error?.message}
+          {...rest}
         />
-    );
+      )}
+    />
+  );
 }

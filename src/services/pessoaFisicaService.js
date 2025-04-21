@@ -13,12 +13,9 @@ const pessoaService = {
 
   remove: (id) => api.delete(`${endpoint}/${id}`),
 
-  getPaginated: (page = 1, size = 10) =>
+  getPaginated: (params) =>
     api.get(`${endpoint}`, {
-      params: {
-        page,
-        size,
-      },
+      params
     }),
 };
 

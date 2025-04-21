@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import { createTheme } from '@mui/material/styles';
 import { AppProvider } from '@toolpad/core/AppProvider';
@@ -17,8 +17,11 @@ import EstoqueIndex from './estoque';
 import PessoaFisicaForm from './pessoaFisica/form';
 import ProdutoForm from './produto/form';
 import ServicoForm from './servico/form';
-import PessoaInfiniteList from './pessoaFisica/list';
-import { handleSubmit } from '../controllers/pessoaFisica';
+import { handleSubmit as pessoaFisicaSubmit } from '../controllers/pessoaFisica';
+import { handleSubmit as produtoSubmit } from '../controllers/produto';
+import SnackbarMessage from '../components/snackBarMessage';
+import { Slide } from '@mui/material';
+import ListaPessoas from './pessoaFisica/list';
 
 const mainTheme = createTheme({
   cssVariables: {
@@ -47,6 +50,10 @@ function SidebarFooter({ mini }) {
   );
 }
 
+function SlideTransition(props) {
+  return <Slide {...props} direction="left" />;
+}
+
 function PessoaFisica() {
   return <Typography>Página de Cadastro de Pessoa Física</Typography>;
 }
@@ -68,6 +75,29 @@ function Estoque() {
 }
 
 export default function ApplicationNavigation() {
+
+  const [snackbars, setSnackbars] = useState([]);
+
+  const showSnackbar = (message, severity = 'success') => {
+    const id = Date.now();
+    setSnackbars((prev) => [
+      ...prev,
+      { id, message, severity, open: true },
+    ]);
+  };
+
+  const handleCloseSnackbar = (id) => {
+    setSnackbars((prev) =>
+      prev.map((s) =>
+        s.id === id ? { ...s, open: false } : s
+      )
+    );
+  };
+
+  const handleExited = (id) => {
+    setSnackbars((prev) => prev.filter((s) => s.id !== id));
+  };
+
   return (
     <Router>
       <AppProvider
@@ -155,21 +185,58 @@ export default function ApplicationNavigation() {
             sidebarFooter: SidebarFooter,
           }}
         >
-          <Routes>
-            <Route path="/pessoafisica" element={<PessoaFisicaIndex />} />
-            <Route path="/produtos" element={<ProdutoIndex />} />
-            <Route path="/servico" element={<ServicoIndex />} />
-            <Route path="/estoque" element={<EstoqueIndex />} />
-
-            <Route path="/pessoafisica/cadastro" element={<PessoaFisicaForm onSubmit={handleSubmit}/>} />
-            <Route path="/produtos/cadastro" element={<ProdutoForm />} />
-            <Route path="/servico/cadastro" element={<ServicoForm />} />
-            <Route path="/pessoafisica/lista" element={<PessoaInfiniteList />} />
-            <Route path="/produtos/lista" element={<ListarProdutos />} />
-            <Route path="/estoque/lista" element={<Estoque />} />
-          </Routes>
+          <AppRoutes showSnackbar={showSnackbar}/>
+          {snackbars.map((snack, index) => (
+            <SnackbarMessage 
+              key={snack.id}
+              open={snack.open}
+              message={snack.message}
+              severity={snack.severity}
+              onClose={() => handleCloseSnackbar(snack.id)}
+              onExited={() => handleExited(snack.id)}
+              TransitionComponent={SlideTransition}
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+              sx={{
+                top: `${8 + index * 70}px`,
+              }}
+            />
+          ))}
         </DashboardLayout>
       </AppProvider>
     </Router>
   );
 }
+
+function AppRoutes( {showSnackbar} ){
+  const navigate = useNavigate();
+
+  return (
+  <Routes>
+    <Route path="/pessoafisica" element={<PessoaFisicaIndex />} />
+    <Route path="/produtos" element={<ProdutoIndex />} />
+    <Route path="/servico" element={<ServicoIndex />} />
+    <Route path="/estoque" element={<EstoqueIndex />} />
+    <Route path="/pessoafisica/cadastro" element={<PessoaFisicaForm 
+                                                    onSubmit={(data) => 
+                                                              pessoaFisicaSubmit(data, 
+                                                                             showSnackbar, 
+                                                                             ()=> navigate('/pessoaFisica')
+                                                                             )
+                                                              }
+                                                    />} 
+    />
+    <Route path="/produtos/cadastro" element={<ProdutoForm 
+                                                    onSubmit={(data) => 
+                                                                produtoSubmit(data, 
+                                                                             showSnackbar, 
+                                                                             ()=> navigate('/produtos')
+                                                                             )
+                                                              }
+                                                    />} 
+    />
+    <Route path="/servico/cadastro" element={<ServicoForm />} />
+    <Route path="/pessoafisica/lista" element={<ListaPessoas />} />
+    <Route path="/produtos/lista" element={<ListarProdutos />} />
+    <Route path="/estoque/lista" element={<Estoque />} />
+  </Routes>
+)}

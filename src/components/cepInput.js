@@ -2,7 +2,7 @@ import React from "react";
 import { Controller } from "react-hook-form";
 import { TextField } from "@mui/material";
 
-export const InputCPF = ({ control, name, label = "CPF", rules = {}, ...rest }) => {
+export const InputCEP = ({ control, name, label = "CEP", rules = {}, ...rest }) => {
   return (
     <Controller
       name={name}
@@ -10,23 +10,20 @@ export const InputCPF = ({ control, name, label = "CPF", rules = {}, ...rest }) 
       rules={{
         required: "Campo obrigatório",
         validate: (value) =>
-          /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(value) || "CPF inválido",
+          /^\d{5}-\d{3}$/.test(value) || "CEP inválido",
         ...rules,
       }}
       render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => {
-        const formatCPF = (val) => {
-          val = val.replace(/\D/g, "").slice(0, 11);
-          return val
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+        const formatCEP = (val) => {
+          val = val.replace(/\D/g, "").slice(0, 8);
+          return val.replace(/^(\d{5})(\d)/, "$1-$2");
         };
 
         return (
           <TextField
             label={label}
             value={value || ""}
-            onChange={(e) => onChange(formatCPF(e.target.value))}
+            onChange={(e) => onChange(formatCEP(e.target.value))}
             onBlur={onBlur}
             error={!!error}
             helperText={error?.message}

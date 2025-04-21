@@ -1,192 +1,77 @@
-import React, { useState } from 'react';
-import { TextField } from '@mui/material';
-import { FormFrame } from '../../components/formFrame';
-import Grid from '@mui/material/Grid2';
-import MonetaryInput from '../../components/monetaryInput';
+import { useForm, Controller } from "react-hook-form";
+import { Box, Button, Grid, Paper, TextField, Typography } from "@mui/material";
+import { MonetaryInput } from "../../components/monetaryInput";
 
-function NomeProduto({ produto, handleChange, errors }) {
-  return (
-    <TextField
-      fullWidth
-      label="Nome"
-      name="nome"
-      value={produto.nome}
-      onChange={handleChange}
-      margin="normal"
-      required
-      error={!!errors.nome}
-      helperText={errors.nome || ''}
-    />
-  );
-}
-
-function ValoresProduto({ produto, handleChange, errors, formatarValor }) {
-  return (
-    <Grid container spacing={2}>
-      <Grid item size={{ xs: 12, md: 6 }}>
-        <MonetaryInput
-          fullWidth
-          label="Valor de Compra"
-          name="valorCompra"
-          value={produto.valorCompra}
-          onChange={handleChange}
-          margin="normal"
-          required
-          error={!!errors.valorCompra}
-          helperText={errors.valorCompra || ''}
-        />
-      </Grid>
-      <Grid item size={{ xs: 12, md: 6 }}>
-      <MonetaryInput
-          fullWidth
-          label="Valor de Venda"
-          name="valorVenda"
-          value={produto.valorVenda}
-          onChange={handleChange}
-          margin="normal"
-          required
-          error={!!errors.valorVenda}
-          helperText={errors.valorVenda || ''}
-        />
-      </Grid>
-    </Grid>
-  );
-}
-
-function DescricaoProduto({ produto, handleChange }) {
-  return (
-    <TextField
-      fullWidth
-      label="Descrição"
-      name="descricao"
-      value={produto.descricao}
-      onChange={handleChange}
-      margin="normal"
-      multiline
-      rows={4}
-    />
-  );
-}
-
-function QuantidadeEstoque({ produto, handleChange, errors }) {
-  return (
-    <TextField
-      fullWidth
-      label="Quantidade Inicial"
-      name="quantidade"
-      type="number"
-      value={produto.quantidade}
-      onChange={handleChange}
-      margin="normal"
-      required
-      InputProps={{ inputProps: { min: 0 } }}
-      error={!!errors.quantidade}
-      helperText={errors.quantidade || ''}
-    />
-  );
-}
-
-export default function ProdutoForm() {
-  const [produto, setProduto] = useState({
-    nome: '',
-    descricao: '',
-    quantidade: 0,
-    valorCompra: '',
-    valorVenda: '',
+export default function FormularioProduto({ dadosIniciais = null, onSubmit }) {
+  const {
+    control,
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    defaultValues: dadosIniciais || {
+      nome: "",
+      descricao: "",
+      precoCusto: "",
+      precoVenda: "",
+      quantidadeInicial: "",
+    },
   });
 
-  const [errors, setErrors] = useState({
-    nome: '',
-    quantidade: '',
-    valorCompra: '',
-    valorVenda: '',
-  });
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-    setProduto({
-      ...produto,
-      [name]: value,
-    });
-  };
-
-  const validarCampos = () => {
-    let valid = true;
-    const newErrors = {
-      nome: '',
-      quantidade: '',
-      valorCompra: '',
-      valorVenda: '',
-    };
-
-    if (!produto.nome.trim()) {
-      newErrors.nome = 'O nome é obrigatório.';
-      valid = false;
-    }
-
-    if (produto.quantidade === '' || produto.quantidade < 0) {
-      newErrors.quantidade = 'A quantidade inicial deve ser maior ou igual a zero.';
-      valid = false;
-    }
-
-    if (!produto.valorCompra || parseFloat(produto.valorCompra.replace(/[^\d.-]/g, '')) <= 0) {
-      newErrors.valorCompra = 'O valor de compra é obrigatório e deve ser maior que zero.';
-      valid = false;
-    }
-
-    if (!produto.valorVenda || parseFloat(produto.valorVenda.replace(/[^\d.-]/g, '')) <= 0) {
-      newErrors.valorVenda = 'O valor de venda é obrigatório e deve ser maior que zero.';
-      valid = false;
-    }
-
-    setErrors(newErrors);
-    return valid;
-  };
-
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    if (validarCampos()) {
-      console.log('Produto cadastrado:', produto);
-      // Enviar os dados para a API ou realizar outra lógica de processamento
-    }
-  };
-
-  const handleCancel = () => {
-    setProduto({ nome: '', descricao: '', quantidade: 0, valorCompra: '', valorVenda: '' });
-    setErrors({ nome: '', quantidade: '', valorCompra: '', valorVenda: '' });
-  };
-
   return (
-    <FormFrame
-      title="Cadastro de Produto"
-      formData={[
-        <NomeProduto 
-          produto={produto} 
-          handleChange={handleChange} 
-          errors={errors}
-          key="nome" 
-        />,
-        <ValoresProduto 
-          produto={produto} 
-          handleChange={handleChange} 
-          errors={errors} 
-          key="valores" 
-        />,
-        <DescricaoProduto 
-          produto={produto} 
-          handleChange={handleChange} 
-          key="descricao" 
-        />,
-        <QuantidadeEstoque 
-          produto={produto} 
-          handleChange={handleChange} 
-          errors={errors}
-          key="quantidade" 
-        />,
-      ]}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-    />
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ p: 4 }}>
+      <Typography variant="h5" gutterBottom>Cadastro de Produto</Typography>
+      
+      <Paper sx={{ p: 3 }} elevation={3}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              label="Nome"
+              {...register("nome", { required: true })}
+              error={!!errors.nome}
+              helperText={errors.nome && "Campo obrigatório"}
+            />
+          </Grid>
+
+          <Grid item xs={12}>
+            <TextField
+              fullWidth
+              multiline
+              minRows={3}
+              label="Descrição"
+              {...register("descricao", { required: false })}
+              error={!!errors.descricao}
+              helperText={errors.descricao && "Campo obrigatório"}
+            />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <MonetaryInput control={control} name="precoCusto" label="Preço de Custo" required />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <MonetaryInput control={control} name="precoVenda" label="Preço de Venda" required />
+          </Grid>
+
+          <Grid item xs={12} md={6}>
+            <TextField
+              fullWidth
+              type="number"
+              label="Quantidade Inicial"
+              {...register("quantidadeInicial", { required: true, min: 0 })}
+              error={!!errors.quantidadeInicial}
+              helperText={errors.quantidadeInicial && "Campo obrigatório"}
+            />
+          </Grid>
+        </Grid>
+
+        <Box mt={4}>
+          <Button type="submit" variant="outlined" color="success" fullWidth>
+            Salvar Produto
+          </Button>
+        </Box>
+      </Paper>
+    </Box>
   );
 }

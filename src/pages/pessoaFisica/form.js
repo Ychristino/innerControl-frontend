@@ -14,6 +14,9 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import paisService from "../../services/paisService";
 import estadoService from "../../services/estadoService";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import { InputCPF } from "../../components/cpfInput";
+import { InputCEP } from "../../components/cepInput";
+import { InputContato } from "../../components/contatoInput";
 
 
 export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
@@ -129,7 +132,7 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
           <TextField fullWidth label="Nome" {...register("nome", { required: true })} error={!!errors.nome} helperText={errors.nome && "Campo obrigatório"} />
         </Grid>
         <Grid item size={{ xs: 12, md: 6 }}>
-          <TextField fullWidth label="CPF" {...register("cpf", { required: true })} error={!!errors.cpf} helperText={errors.cpf && "Campo obrigatório"} />
+          <InputCPF control={control} name="cpf" />
         </Grid>
       </Grid>
 
@@ -155,7 +158,7 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
           <Paper key={field.id} sx={{ p: 2, mb: 2 }} elevation={3}>
             <Grid container spacing={2}>
               <Grid item size={{ xs: 12, md: 4 }}>
-                <TextField fullWidth label="CEP" {...register(`enderecos.${index}.cep`, { required: true })} error={!!errors.enderecos?.[index]?.cep} helperText={errors.enderecos?.[index]?.cep && "Campo obrigatório"} />
+                <InputCEP control={control} name="enderecos.0.cep" />
               </Grid>
             </Grid>
 
@@ -221,7 +224,7 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
                 <TextField fullWidth label="Número" {...register(`enderecos.${index}.numero`, { required: true })} error={!!errors.enderecos?.[index]?.numero} helperText={errors.enderecos?.[index]?.numero && "Campo obrigatório"} />
               </Grid>
               <Grid item size={{ xs: 12, md: 12 }}>
-                <TextField fullWidth label="Complemento" {...register(`enderecos.${index}.complemento`, { required: true })} error={!!errors.enderecos?.[index]?.complemento} helperText={errors.enderecos?.[index]?.complemento && "Campo obrigatório"} />
+                <TextField fullWidth label="Complemento" {...register(`enderecos.${index}.complemento`, { required: false })} error={!!errors.enderecos?.[index]?.complemento} helperText={errors.enderecos?.[index]?.complemento && "Campo obrigatório"} />
               </Grid>
             </Grid>
 
@@ -266,47 +269,49 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
       </Grid>
 
       <Typography variant="h6" mt={4}>Contatos</Typography>
-      {contatosFields.map((field, index) => (
-        <Paper key={field.id} sx={{ p: 2, mb: 2 }} elevation={3}>
-          <Grid container spacing={2}>
-            <Grid item size={{ xs: 12, md: 4 }}>
-              <TextField
-                select
-                fullWidth
-                label="Tipo"
-                defaultValue=""
-                {...register(`contatos.${index}.tipo`, { required: true })}
-                error={!!errors.contatos?.[index]?.tipo}
-                helperText={errors.contatos?.[index]?.tipo && "Campo obrigatório"}
-              >
-                <MenuItem value="email">Email</MenuItem>
-                <MenuItem value="telefone">Telefone</MenuItem>
-              </TextField>
+        {contatosFields.map((field, index) => (
+          <Paper key={field.id} sx={{ p: 2, mb: 2 }} elevation={3}>
+            <Grid container spacing={2}>
+              <Grid item size={{ xs: 12, md: 4 }}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Tipo"
+                  {...register(`contatos.${index}.tipo`, { required: true })}
+                  error={!!errors.contatos?.[index]?.tipo}
+                  helperText={errors.contatos?.[index]?.tipo && "Campo obrigatório"}
+                >
+                  <MenuItem value="email">Email</MenuItem>
+                  <MenuItem value="telefone">Telefone</MenuItem>
+                </TextField>
+              </Grid>
             </Grid>
-          </Grid>
 
-          <Grid container spacing={2} marginTop={2}>
-            <Grid item size={{ xs: 12, md: 12 }}>
-              <TextField fullWidth label="Valor" {...register(`contatos.${index}.valor`, { required: true })} error={!!errors.contatos?.[index]?.valor} helperText={errors.contatos?.[index]?.valor && "Campo obrigatório"} />
+            <Grid container spacing={2} marginTop={2}>
+              <Grid item size={{ xs: 12, md: 12 }}>
+                <InputContato
+                  control={control}
+                  name={`contatos.${index}.valor`}
+                  tipoContato={watch(`contatos.${index}.tipo`)}
+                />
+              </Grid>
             </Grid>
-          </Grid>
-          <Grid>
-          <Grid container spacing={2} marginTop={2}>
+
+            <Grid container spacing={2} marginTop={2}>
               <Grid item size={{ xs: 12, md: 3 }} offset={9}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   color="error"
                   onClick={() => confirmarRemocao(() => removeContato(index))}
                   fullWidth
-                  >
-                  <DeleteIcon fontSize="small"/>
+                >
+                  <DeleteIcon fontSize="small" />
                   Remover Contato
                 </Button>
               </Grid>
             </Grid>
-          </Grid>
-        </Paper>
-      ))}
+          </Paper>
+        ))}
       <Grid container spacing={2} marginTop={2}>
         <Grid item size={{ xs: 12, md: 4 }}>
           <Button variant="outlined" onClick={() => appendContato({ tipo: "", valor: "" })} fullWidth>Novo Contato</Button>
