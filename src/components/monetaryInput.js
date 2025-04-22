@@ -1,17 +1,7 @@
 import React from "react";
 import { Controller } from "react-hook-form";
 import { TextField } from "@mui/material";
-
-// Formata número para moeda BRL
-const formatToBRL = (value) => {
-  const numeric = parseFloat(value);
-  if (isNaN(numeric)) return "R$ 0,00";
-  return numeric.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    minimumFractionDigits: 2,
-  });
-};
+import { monetaryFormat } from "../utils/format";
 
 // Converte string formatada para número
 const parseToNumber = (value) => {
@@ -31,7 +21,7 @@ export function MonetaryInput({ control, name, label = "Valor", rules = {}, ...r
           fullWidth
           inputRef={ref}
           label={label}
-          value={formatToBRL(value)}
+          value={monetaryFormat(value)}
           onChange={(e) => {
             const rawValue = parseToNumber(e.target.value);
             onChange(rawValue);

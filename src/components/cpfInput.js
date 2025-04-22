@@ -10,7 +10,7 @@ export const InputCPF = ({ control, name, label = "CPF", rules = {}, ...rest }) 
       rules={{
         required: "Campo obrigatório",
         validate: (value) =>
-          /^\d{3}\.\d{3}\.\d{3}-\d{2}$/.test(value) || "CPF inválido",
+          /^\d{11}$/.test(value) || "CPF inválido",
         ...rules,
       }}
       render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => {
@@ -22,11 +22,18 @@ export const InputCPF = ({ control, name, label = "CPF", rules = {}, ...rest }) 
             .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
         };
 
+        const handleChange = (e) => {
+          const rawValue = e.target.value.replace(/\D/g, "");
+          onChange(rawValue); // mantém somente números no formState
+        };
+
+        const formattedValue = formatCPF(value || "");
+
         return (
           <TextField
             label={label}
-            value={value || ""}
-            onChange={(e) => onChange(formatCPF(e.target.value))}
+            value={formattedValue}
+            onChange={handleChange}
             onBlur={onBlur}
             error={!!error}
             helperText={error?.message}

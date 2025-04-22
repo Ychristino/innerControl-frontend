@@ -3,7 +3,18 @@ import api from './api';
 const endpoint = '/servicos';
 
 const servicoService = {
-  getAll: () => api.get(endpoint),
+  getAll: (nome = "", dataEntrada = "", dataEntrega = "", page = 0, size = 10) => {
+    const params = {
+      page,
+      size,
+    };
+  
+    if (nome) params.nome = nome;
+    if (dataEntrada) params.dataEntrada = dataEntrada;
+    if (dataEntrega) params.dataEntrega = dataEntrega;
+  
+    return api.get(endpoint, { params });
+  },
 
   getById: (id) => api.get(`${endpoint}/${id}`),
 

@@ -10,7 +10,6 @@ export const InputContato = ({
   tipoContato,
   ...rest
 }) => {
-  // Função para formatar o telefone
   const formatTelefone = (val) => {
     val = val.replace(/\D/g, "").slice(0, 11);
     if (val.length <= 10) {
@@ -31,20 +30,29 @@ export const InputContato = ({
         required: "Campo obrigatório",
         validate: (value) =>
           tipoContato === "telefone"
-            ? /^\(\d{2}\) \d{4,5}-\d{4}$/.test(value) || "Número de telefone inválido"
+            ? /^\d{10,11}$/.test(value) || "Número de telefone inválido"
             : tipoContato === "email"
             ? /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(value) || "Email inválido"
             : true,
         ...rules,
       }}
       render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => {
+        const handleChange = (e) => {
+          const rawValue = tipoContato === "telefone"
+            ? e.target.value.replace(/\D/g, "")
+            : e.target.value;
+
+          onChange(rawValue);
+        };
+
+        const formattedValue =
+          tipoContato === "telefone" ? formatTelefone(value || "") : value || "";
+
         return (
           <TextField
             label={label}
-            value={value || ""}
-            onChange={(e) =>
-              onChange(tipoContato === "telefone" ? formatTelefone(e.target.value) : e.target.value)
-            }
+            value={formattedValue}
+            onChange={handleChange}
             onBlur={onBlur}
             error={!!error}
             helperText={error?.message}

@@ -54,21 +54,24 @@ export default function FormularioProduto({ dadosIniciais = null, onSubmit }) {
             <MonetaryInput control={control} name="precoVenda" label="Preço de Venda" required />
           </Grid>
 
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              type="number"
-              label="Quantidade Inicial"
-              {...register("quantidadeInicial", { required: true, min: 0 })}
-              error={!!errors.quantidadeInicial}
-              helperText={errors.quantidadeInicial && "Campo obrigatório"}
-            />
-          </Grid>
+          {/* Condicionalmente renderiza o campo "Quantidade Inicial" */}
+          {!dadosIniciais && (
+            <Grid item xs={12} md={6}>
+              <TextField
+                fullWidth
+                type="number"
+                label="Quantidade Inicial"
+                {...register("quantidadeInicial", { required: true, min: 0 })}
+                error={!!errors.quantidadeInicial}
+                helperText={errors.quantidadeInicial && "Campo obrigatório"}
+              />
+            </Grid>
+          )}
         </Grid>
 
         <Box mt={4}>
           <Button type="submit" variant="outlined" color="success" fullWidth>
-            Salvar Produto
+            {dadosIniciais ? "Atualizar Produto" : "Salvar Produto"}
           </Button>
         </Box>
       </Paper>

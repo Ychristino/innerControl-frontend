@@ -10,7 +10,7 @@ export const InputCEP = ({ control, name, label = "CEP", rules = {}, ...rest }) 
       rules={{
         required: "Campo obrigatório",
         validate: (value) =>
-          /^\d{5}-\d{3}$/.test(value) || "CEP inválido",
+          /^\d{8}$/.test(value) || "CEP inválido", // valor raw
         ...rules,
       }}
       render={({ field: { onChange, onBlur, value }, fieldState: { error } }) => {
@@ -19,11 +19,18 @@ export const InputCEP = ({ control, name, label = "CEP", rules = {}, ...rest }) 
           return val.replace(/^(\d{5})(\d)/, "$1-$2");
         };
 
+        const handleChange = (e) => {
+          const rawValue = e.target.value.replace(/\D/g, "");
+          onChange(rawValue);
+        };
+
+        const formattedValue = formatCEP(value || "");
+
         return (
           <TextField
             label={label}
-            value={value || ""}
-            onChange={(e) => onChange(formatCEP(e.target.value))}
+            value={formattedValue}
+            onChange={handleChange}
             onBlur={onBlur}
             error={!!error}
             helperText={error?.message}

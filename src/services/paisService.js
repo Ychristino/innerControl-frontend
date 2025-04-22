@@ -5,11 +5,11 @@ const endpoint = '/paises';
 const paisService = {
   
   getAll: (page = 0, size = 50) =>
-    api.get('/paises', {
+    api.get(endpoint, {
       params: { page, size },
   }),
 
-  getAllNoPaginated: () => api.get(endpoint),
+  getAllNoPaginated: () => api.get(`${endpoint}/nopaginated`),
 
   getById: (id) => api.get(`${endpoint}/${id}`),
 

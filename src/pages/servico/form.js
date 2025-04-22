@@ -1,279 +1,333 @@
-import React, { useState } from 'react';
-import { TextField, Button, Box, Typography, Autocomplete, Table, TableHead, TableRow, TableCell, TableBody, IconButton } from '@mui/material';
-import { FormFrame } from '../../components/formFrame';
-import { Add, Remove, Delete } from '@mui/icons-material';
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+import { useForm, useFieldArray, Controller } from "react-hook-form";
+import { useState, useEffect } from "react";
+import {
+  TextField,
+  Button,
+  Box,
+  Typography,
+  Paper,
+  Autocomplete,
+  IconButton,
+} from "@mui/material";
 import Grid from '@mui/material/Grid2';
-import PessoaFisicaAutoComplete from '../../components/autoCompletePessoaFisica';
+import DeleteIcon from "@mui/icons-material/Delete";
+import ConfirmDialog from "../../components/ConfirmDialog";
+import { MonetaryInput } from "../../components/monetaryInput";
+import produtoService from "../../services/produtoService";
+import pessoaService from "../../services/pessoaFisicaService";
+import { formatDate, monetaryFormat } from "../../utils/format";
 
-function DatasServico({ servico, handleChange, errors }) {
-  return (
-    <Grid container spacing={2}>
-      <Grid item size={{ xs: 12, md: 6 }}>
-        <TextField
-          fullWidth
-          label="Data de Entrada"
-          name="dataEntrada"
-          type="date"
-          value={servico.dataEntrada}
-          onChange={handleChange}
-          margin="normal"
-          required
-          InputLabelProps={{ shrink: true }}
-          error={!!errors.dataEntrada}
-          helperText={errors.dataEntrada || ''}
-        />
-      </Grid>
-      <Grid item size={{ xs: 12, md: 6 }}>
-        <TextField
-          fullWidth
-          label="Data de Entrega"
-          name="dataEntrega"
-          type="date"
-          value={servico.dataEntrega}
-          onChange={handleChange}
-          margin="normal"
-          InputLabelProps={{ shrink: true }}
-        />
-      </Grid>
-    </Grid>
-  );
-}
+export default function FormularioServico({ dadosIniciais = null, onSubmit }) {
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, onConfirm: null });
+  const [produtos, setProdutos] = useState([]);
+  const [pessoas, setPessoas] = useState([]);
 
-function ValorServico({ servico, handleChange, errors }) {
-  // return (
-    // <MonetaryInput
-    //     fullWidth
-    //     label="Valor do Serviço"
-    //     name="valorServico"
-    //     value={servico.valorServico}
-    //     onChange={handleChange}
-    //     margin="normal"
-    //     required
-    //     error={!!errors.valorServico}
-    //     helperText={errors.valorServico || ''}
-    //   />
-  // );
-}
+  useEffect(() => {
+    produtoService.getAllNoPaginated()
+      .then((response) => {
+        setProdutos(response.data);
+      });
 
-function ListaProdutos({ servico, handleAddProduto, handleRemoveProduto, handleUpdateQuantidade, produtosDisponiveis }) {
-  const [produtoSelecionado, setProdutoSelecionado] = useState(null);
+    pessoaService.getAllNoPaginated()
+      .then((response) => {
+        setPessoas(response.data);
+      });
+  }, []);
 
-  const handleAdd = () => {
-    if (produtoSelecionado && !servico.produtos.some((prod) => prod.nome === produtoSelecionado.nome)) {
-      handleAddProduto({ ...produtoSelecionado, quantidade: 1 });
-      setProdutoSelecionado(null);
+  const formDefaults = dadosIniciais
+  ? {
+      ...dadosIniciais,
+      dataEntrada: formatDate(dadosIniciais.dataEntrada),
+      dataEntrega: formatDate(dadosIniciais.dataEntrega),
     }
-  };
-
-  return (
-    <Box>
-      <Typography variant="h6">Produtos</Typography>
-      <Autocomplete
-        options={produtosDisponiveis}
-        getOptionLabel={(option) => `${option.nome} - R$ ${option.valor.toFixed(2)}`}
-        value={produtoSelecionado}
-        onChange={(event, newValue) => setProdutoSelecionado(newValue)}
-        renderInput={(params) => (
-          <TextField {...params} label="Selecionar Produto" margin="normal" fullWidth />
-        )}
-      />
-      <Button 
-        variant="outlined" 
-        color='info'
-        fullWidth
-        size="large" 
-        onClick={handleAdd} 
-        sx={{ mt: 2 }} 
-        aria-label="Adicionar item na lista"
-      >
-        <AddShoppingCartIcon /> Adicionar Item
-      </Button>
-      <Table sx={{ mt: 2 }}>
-        <TableHead>
-          <TableRow>
-            <TableCell>Produto</TableCell>
-            <TableCell>Valor (R$)</TableCell>
-            <TableCell>Quantidade</TableCell>
-            <TableCell>Ações</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {servico.produtos.map((prod, index) => (
-            <TableRow key={index}>
-              <TableCell>{prod.nome}</TableCell>
-              <TableCell>{prod.valor.toFixed(2)}</TableCell>
-              <TableCell>
-                <Box display="flex" alignItems="center">
-                  <IconButton onClick={() => handleUpdateQuantidade(index, prod.quantidade - 1)} disabled={prod.quantidade <= 1}>
-                    <Remove />
-                  </IconButton>
-                  <TextField
-                    type="number"
-                    value={prod.quantidade}
-                    onChange={(e) => handleUpdateQuantidade(index, parseInt(e.target.value) || 1)}
-                    inputProps={{ min: 1 }}
-                    sx={{ width: '80px', mx: 1 }}
-                  />
-                  <IconButton onClick={() => handleUpdateQuantidade(index, prod.quantidade + 1)}>
-                    <Add />
-                  </IconButton>
-                </Box>
-              </TableCell>
-              <TableCell>
-                <IconButton color="error" onClick={() => handleRemoveProduto(index)}>
-                  <Delete />
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </Box>
-  );
-}
-
-export default function ServicoForm() {
-  const [servico, setServico] = useState({
-    pessoaFisica: '', // Inicializado como string vazia
-    dataEntrada: '',
-    dataEntrega: '',
-    valorServico: '',
-    produtos: [],
-  });
-
-  const [errors, setErrors] = useState({
-    pessoaFisica: '',
-    dataEntrada: '',
-    valorServico: '',
-  });
-
-  const pessoasFisicas = [
-    { id: '1', nome: 'João Silva' },
-    { id: '2', nome: 'Maria Souza' },
-    { id: '3', nome: 'Pedro Oliveira' },
-  ];
-
-  const produtosDisponiveis = [
-    { nome: 'Produto A', valor: 100.0 },
-    { nome: 'Produto B', valor: 200.0 },
-    { nome: 'Produto C', valor: 150.0 },
-  ];
-
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
-    setServico({
-      ...servico,
-      [name]: value,
-    });
-  };
-
-  const handleAddProduto = (produto) => {
-    setServico({
-      ...servico,
-      produtos: [...servico.produtos, produto],
-    });
-  };
-
-  const handleRemoveProduto = (index) => {
-    const produtosAtualizados = servico.produtos.filter((_, i) => i !== index);
-    setServico({
-      ...servico,
-      produtos: produtosAtualizados,
-    });
-  };
-
-  const handleUpdateQuantidade = (index, quantidade) => {
-    const produtosAtualizados = servico.produtos.map((prod, i) =>
-      i === index ? { ...prod, quantidade: quantidade > 0 ? quantidade : 1 } : prod
-    );
-    setServico({
-      ...servico,
-      produtos: produtosAtualizados,
-    });
-  };
-
-  const validarCampos = () => {
-    let valid = true;
-    const newErrors = {
-      pessoaFisica: '',
-      dataEntrada: '',
-      valorServico: '',
+  : {
+      descricao: "",
+      dataEntrada: "",
+      dataEntrega: "",
+      valor: 0,
+      pessoaId: null,
+      produtosUtilizados: [],
     };
 
-    if (!servico.pessoaFisica) {
-      newErrors.pessoaFisica = 'É obrigatório selecionar uma pessoa física.';
-      valid = false;
-    }
+  const {
+    register,
+    control,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    watch,
+  } = useForm({
+    defaultValues: formDefaults,
+  });
 
-    if (!servico.dataEntrada) {
-      newErrors.dataEntrada = 'A data de entrada é obrigatória.';
-      valid = false;
-    }
+  const produtosUtilizados = watch("produtosUtilizados");
 
-    if (!servico.valorServico || parseFloat(servico.valorServico.replace(/[^\d.-]/g, '')) <= 0) {
-      newErrors.valorServico = 'O valor do serviço é obrigatório e deve ser maior que zero.';
-      valid = false;
-    }
+  const {
+    fields: produtosUtilizadosFields,
+    append: appendProduto,
+    remove: removeProduto,
+  } = useFieldArray({ control, name: "produtosUtilizados" });
 
-    setErrors(newErrors);
-    return valid;
+  const [produtoSelecionado, setProdutoSelecionado] = useState(null);
+  const [quantidadeProduto, setQuantidadeProduto] = useState(1);
+
+  const confirmarRemocao = (callback) => {
+    setConfirmDialog({
+      open: true,
+      onConfirm: () => {
+        callback();
+        setConfirmDialog({ open: false, onConfirm: null });
+      },
+    });
   };
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-
-    if (validarCampos()) {
-      console.log('Serviço cadastrado:', servico);
+  const handleAddProduto = () => {
+    if (produtoSelecionado) {
+      appendProduto({
+        idProduto: produtoSelecionado.id,
+        quantidade: quantidadeProduto,
+        valorProduto: produtoSelecionado.precoVenda || 0,
+      });
+      setProdutoSelecionado(null);
+      setQuantidadeProduto(1);
     }
   };
 
-  const handleCancel = () => {
-    setServico({
-      pessoaFisica: '',
-      dataEntrada: '',
-      dataEntrega: '',
-      valorServico: '',
-      produtos: [],
-    });
-    setErrors({
-      pessoaFisica: '',
-      dataEntrada: '',
-      valorServico: '',
-    });
+  const calcularTotalItem = (quantidade, valor) => quantidade * valor;
+
+  const calcularTotalGeral = () => {
+    const totalProdutos = produtosUtilizados.reduce((total, field) => {
+      const produto = produtos.find((prod) => prod.id === field.idProduto);
+      return total + calcularTotalItem(field.quantidade, field.valorProduto || 0);
+    }, 0);
+  
+    const valorServico = Number(watch("valor")) || 0;
+  
+    return totalProdutos + valorServico;
   };
 
   return (
-    <FormFrame
-      title="Cadastro de Serviço"
-      formData={[
-        <PessoaFisicaAutoComplete
-          fullWidth={true} 
-          pessoaFisicaSelecionada={servico.pessoaFisica} 
-          onChange={handleChange} 
-          errors={errors}
-          helperText={errors.pessoaFisica}
-          listaPessoasFisicas={pessoasFisicas}
-        />,
-        <DatasServico servico={servico} handleChange={handleChange} errors={errors} key="datas" />,
-        <ValorServico
-          servico={servico}
-          handleChange={handleChange}
-          errors={errors}
-          key="valorServico"
-        />,
-        <ListaProdutos
-          servico={servico}
-          handleAddProduto={handleAddProduto}
-          handleRemoveProduto={handleRemoveProduto}
-          handleUpdateQuantidade={handleUpdateQuantidade}
-          produtosDisponiveis={produtosDisponiveis}
-          key="produtos"
-        />,
-      ]}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-    />
+    <Box component="form" onSubmit={handleSubmit(onSubmit)} sx={{ p: 4 }}>
+      <Typography variant="h5" gutterBottom>Cadastro de Serviço</Typography>
+
+
+      <Typography variant="h6" mt={4}>Pessoa Física</Typography>
+      <Grid container spacing={2} marginTop={2}>
+        <Grid item size={{xs: 12}}>
+          <Controller
+            control={control}
+            name="pessoaId"
+            rules={{ required: true }}
+            render={({ field }) => (
+              <Autocomplete
+                fullWidth
+                options={pessoas}
+                getOptionLabel={(option) => option.nome || ""}
+                value={pessoas.find((p) => p.id === field.value) || null}
+                onChange={(_, newValue) => field.onChange(newValue?.id || null)}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    label="Pessoa Física"
+                    error={!!errors.pessoaId}
+                    helperText={errors.pessoaId && "Campo obrigatório"}
+                  />
+                )}
+              />
+            )}
+          />
+        </Grid>
+      </Grid>
+
+      <Typography variant="h6" mt={4}>Dados do serviço</Typography>
+      <Grid container spacing={2}>
+        <Grid item size={{xs: 12}}>
+          <TextField
+            fullWidth
+            label="Descrição do Serviço"
+            {...register("descricao", { required: true })}
+            error={!!errors.descricao}
+            helperText={errors.descricao && "Campo obrigatório"}
+          />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={2} marginTop={2}>
+        <Grid item size={{xs: 12, md: 6}}>
+          <TextField
+            fullWidth
+            type="date"
+            label="Data de Entrada"
+            InputLabelProps={{ shrink: true }}
+            {...register("dataEntrada", { required: true })}
+            error={!!errors.dataEntrada}
+            helperText={errors.dataEntrada && "Campo obrigatório"}
+          />
+        </Grid>
+        <Grid item size={{xs: 12, md: 6}}>
+          <TextField
+            fullWidth
+            type="date"
+            label="Data de Entrega"
+            InputLabelProps={{ shrink: true }}
+            {...register("dataEntrega", { required: true })}
+            error={!!errors.dataEntrega}
+            helperText={errors.dataEntrega && "Campo obrigatório"}
+          />
+        </Grid>
+      </Grid>
+
+      <Grid container spacing={2} marginTop={2}>
+        <Grid item size={{xs: 12, md: 6}}>
+          <MonetaryInput
+            control={control}
+            name="valor"
+            label="Valor do serviço"
+            rules={{ required: "Campo obrigatório" }}
+            fullWidth
+            error={!!errors.valor}
+            helperText={errors.valor && "Campo obrigatório"}
+          />
+        </Grid>
+      </Grid>
+
+      <Typography variant="h6" mt={4}>Produtos Utilizados</Typography>
+      <Grid container spacing={2} marginTop={2}>
+        <Grid item size={{xs: 12}}>
+          <Controller
+            control={control}
+            name="produtoSelecionado"
+            render={({ field }) => (
+              <Autocomplete
+                {...field}
+                options={produtos}
+                getOptionLabel={(option) => option.nome || ""}
+                value={produtoSelecionado || null}
+                onChange={(_, newValue) => setProdutoSelecionado(newValue)}
+                renderInput={(params) => (
+                  <TextField {...params} label="Selecione um Produto" />
+                )}
+              />
+            )}
+          />
+        </Grid>
+        <Grid item size={{xs: 12}}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleAddProduto}
+            fullWidth
+          >
+            Adicionar Produto
+          </Button>
+        </Grid>
+      </Grid>
+
+      <Paper sx={{ p: 2, mt: 4 }} elevation={3}>
+        <Grid container spacing={2}>
+          <Grid item size={{xs: 12}}>
+            <Typography variant="h6">Lista de Produtos</Typography>
+          </Grid>
+          <Grid item size={{xs: 12}}>
+            <Grid container spacing={2}>
+              <Grid item size={{xs: 4}}><Typography>Produto</Typography></Grid>
+              <Grid item size={{xs: 2}}><Typography>Valor</Typography></Grid>
+              <Grid item size={{xs: 2}}><Typography>Quantidade</Typography></Grid>
+              <Grid item size={{xs: 2}}><Typography>Total</Typography></Grid>
+              <Grid item size={{xs: 2}}></Grid>
+            </Grid>
+            <Grid container spacing={2}>
+              <Grid item size={{xs: 4}}><Typography>Produto</Typography></Grid>
+              <Grid item size={{xs: 2}}><Typography>Valor Unitário</Typography></Grid>
+              <Grid item size={{xs: 2}}><Typography>Quantidade</Typography></Grid>
+              <Grid item size={{xs: 2}}><Typography>Total</Typography></Grid>
+              <Grid item size={{xs: 2}}></Grid>
+            </Grid>
+
+            {produtosUtilizados.map((field, index) => (
+              <Box key={index}>
+                <Grid container spacing={2} alignItems="center">
+                  <Grid item size={{xs: 4}}>
+                    <Typography>
+                      {produtos.find((prod) => prod.id === field.idProduto)?.nome || ""}
+                    </Typography>
+                  </Grid>
+                  <Grid item size={{xs: 2}}>
+                    <Controller
+                      control={control}
+                      name={`produtosUtilizados.${index}.valorProduto`}
+                      render={({ field: valorField }) => (
+                        <TextField
+                          type="number"
+                          inputProps={{ min: 0, step: "0.01" }}
+                          {...valorField}
+                          onChange={(e) => valorField.onChange(Number(e.target.value))}
+                          size="small"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item size={{xs: 2}}>
+                    <Controller
+                      control={control}
+                      name={`produtosUtilizados.${index}.quantidade`}
+                      render={({ field: quantidadeField }) => (
+                        <TextField
+                          type="number"
+                          inputProps={{ min: 0 }}
+                          {...quantidadeField}
+                          onChange={(e) =>
+                            quantidadeField.onChange(Math.max(0, Number(e.target.value)))
+                          }
+                          size="small"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item size={{xs: 2}}>
+                    <Typography>
+                      {monetaryFormat(calcularTotalItem(field.quantidade, field.valorProduto))}
+                    </Typography>
+                  </Grid>
+                  <Grid item size={{xs: 2}}>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={() => confirmarRemocao(() => removeProduto(index))}
+                      fullWidth
+                    >
+                      Remover Item
+                    </Button>
+                  </Grid>
+                </Grid>
+                {index < produtosUtilizados.length - 1 && <Box my={1}><hr /></Box>}
+              </Box>
+            ))}
+          </Grid>
+        </Grid>
+        <Grid container spacing={2} marginTop={2}>
+          <Grid item size={{xs: 12}} textAlign="right">
+            <Typography variant="h6">Total Geral: {monetaryFormat(calcularTotalGeral())}</Typography>
+          </Grid>
+        </Grid>
+      </Paper>
+
+      <Box mt={4}>
+        <Button variant="outlined" type="submit" color="success" fullWidth>
+          Salvar Serviço
+        </Button>
+      </Box>
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog({ open: false, onConfirm: null })}
+        onConfirm={confirmDialog.onConfirm}
+        title="Confirmar Remoção"
+        content="Tem certeza que deseja remover este item?"
+      />
+    </Box>
   );
 }

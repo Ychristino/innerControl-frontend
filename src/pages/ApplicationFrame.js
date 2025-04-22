@@ -17,11 +17,19 @@ import EstoqueIndex from './estoque';
 import PessoaFisicaForm from './pessoaFisica/form';
 import ProdutoForm from './produto/form';
 import ServicoForm from './servico/form';
-import { handleSubmit as pessoaFisicaSubmit } from '../controllers/pessoaFisica';
-import { handleSubmit as produtoSubmit } from '../controllers/produto';
+import { handleSubmit as pessoaFisicaSubmit, handleUpdate as pessoaFisicaUpdate } from '../controllers/pessoaFisica';
+import { handleSubmit as produtoSubmit, handleUpdate as produtoUpdate } from '../controllers/produto';
+import { handleSubmit as servicoSubmit, handleUpdate as servicoUpdate } from '../controllers/servico';
 import SnackbarMessage from '../components/snackBarMessage';
 import { Slide } from '@mui/material';
 import ListaPessoas from './pessoaFisica/list';
+import PessoaFisicaUpdate from './pessoaFisica/udpate';
+import ListaProdutos from './produto/list';
+import ProdutoUpdate from './produto/update';
+import ListagemEstoque from './estoque/list';
+import { handleChangeQuantity as handleChangeQuantityEstoque } from '../controllers/estoque';
+import ListaServicos from './servico/list';
+import ServicoUpdate from './servico/update';
 
 const mainTheme = createTheme({
   cssVariables: {
@@ -50,9 +58,20 @@ function SidebarFooter({ mini }) {
   );
 }
 
-function SlideTransition(props) {
-  return <Slide {...props} direction="left" />;
-}
+const SlideTransition = React.forwardRef(function SlideTransition(props, ref) {
+  const { children, in: inProp, onExited, ...other } = props;
+  return (
+    <Slide
+      direction="left"
+      ref={ref}
+      in={inProp}
+      onExited={onExited}
+      {...other}
+    >
+      {children}
+    </Slide>
+  );
+});
 
 function PessoaFisica() {
   return <Typography>Página de Cadastro de Pessoa Física</Typography>;
@@ -159,7 +178,7 @@ export default function ApplicationNavigation() {
             ],
           },
           {
-            segment: 'servico',
+            segment: 'servicos',
             title: 'Serviço',
             icon: <ConstructionIcon />,
             children: [
@@ -209,12 +228,18 @@ export default function ApplicationNavigation() {
 
 function AppRoutes( {showSnackbar} ){
   const navigate = useNavigate();
+  const [routeKey, setRouteKey] = useState(Date.now());
+
+  const resetView = () => {
+    setRouteKey(Date.now());
+  };
+
 
   return (
   <Routes>
     <Route path="/pessoafisica" element={<PessoaFisicaIndex />} />
     <Route path="/produtos" element={<ProdutoIndex />} />
-    <Route path="/servico" element={<ServicoIndex />} />
+    <Route path="/servicos" element={<ServicoIndex />} />
     <Route path="/estoque" element={<EstoqueIndex />} />
     <Route path="/pessoafisica/cadastro" element={<PessoaFisicaForm 
                                                     onSubmit={(data) => 
@@ -223,6 +248,15 @@ function AppRoutes( {showSnackbar} ){
                                                                              ()=> navigate('/pessoaFisica')
                                                                              )
                                                               }
+                                                    />} 
+    />
+    <Route path="/pessoafisica/udpate/:id" element={<PessoaFisicaUpdate
+                                                      onSubmit={(data) => 
+                                                                  pessoaFisicaUpdate(data, 
+                                                                                     showSnackbar, 
+                                                                                     ()=> navigate('/pessoaFisica/lista')
+                                                                                    )
+                                                                }
                                                     />} 
     />
     <Route path="/produtos/cadastro" element={<ProdutoForm 
@@ -234,9 +268,43 @@ function AppRoutes( {showSnackbar} ){
                                                               }
                                                     />} 
     />
-    <Route path="/servico/cadastro" element={<ServicoForm />} />
-    <Route path="/pessoafisica/lista" element={<ListaPessoas />} />
-    <Route path="/produtos/lista" element={<ListarProdutos />} />
-    <Route path="/estoque/lista" element={<Estoque />} />
+    <Route path="/produtos/update/:id" element={<ProdutoUpdate 
+                                                    onSubmit={(data) => 
+                                                                produtoUpdate(data, 
+                                                                             showSnackbar, 
+                                                                             ()=> navigate('/produtos/lista')
+                                                                             )
+                                                              }
+                                                    />} 
+    />
+    <Route path="/estoque/lista" element={<ListagemEstoque
+                                              key={routeKey} 
+                                              onChangeQuantity={(data)=> 
+                                                handleChangeQuantityEstoque(data,
+                                                                            showSnackbar, 
+                                                                            resetView)
+                                                }
+                                          />} 
+    />
+    <Route path="/servicos/cadastro" element={<ServicoForm onSubmit={(data) => 
+                                                                servicoSubmit(data, 
+                                                                             showSnackbar, 
+                                                                             ()=> navigate('/servicos')
+                                                                             )
+                                                              }
+                                                    />} 
+    />
+    <Route path="/servicos/update/:id" element={<ServicoUpdate 
+                                                    onSubmit={(data) => 
+                                                                servicoUpdate(data, 
+                                                                              showSnackbar, 
+                                                                              ()=> navigate('/servicos/lista')
+                                                                             )
+                                                              }
+                                                    />} 
+    />
+  <Route path="/pessoafisica/lista" element={<ListaPessoas />} />
+  <Route path="/produtos/lista" element={<ListaProdutos />} />
+  <Route path="/servicos/lista" element={<ListaServicos />} />
   </Routes>
 )}

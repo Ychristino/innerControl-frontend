@@ -11,12 +11,12 @@ export default function ServicoIndex(){
         {
             icon: <AddIcon />,
             label: "Cadastrar Serviço",
-            onClick: () => navigate("/servico/cadastro"),
+            onClick: () => navigate("/servicos/cadastro"),
         },
         {
             icon: <ListIcon />,
             label: "Listar Serviço",
-            onClick: () => navigate("/servico/lista"),
+            onClick: () => navigate("/servicos/lista"),
         },
     ];
 

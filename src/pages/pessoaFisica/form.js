@@ -17,6 +17,7 @@ import ConfirmDialog from "../../components/ConfirmDialog";
 import { InputCPF } from "../../components/cpfInput";
 import { InputCEP } from "../../components/cepInput";
 import { InputContato } from "../../components/contatoInput";
+import { formatDate } from "../../utils/format";
 
 
 export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
@@ -31,6 +32,43 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
       })
   }, []);
 
+  const normalizeContatos = (contatos = []) => {
+    return contatos.map((contato) => ({
+      ...contato,
+      tipo: contato.tipo?.toLowerCase(), // "email" ou "telefone"
+    }));
+  };
+  
+  const formDefaults = dadosIniciais
+    ? {
+        ...dadosIniciais,
+        dataNascimento: formatDate(dadosIniciais?.dataNascimento),
+        contatos: normalizeContatos(dadosIniciais?.contatos),
+      }
+    : {
+        nome: "",
+        cpf: "",
+        dataNascimento: "",
+        enderecos: [
+          {
+            logradouro: "",
+            numero: "",
+            complemento: "",
+            cep: "",
+            cidade: {
+              nome: "",
+              estado: {
+                nome: "",
+                sigla: "",
+                pais: { nome: "", id: "" },
+              },
+              pais: { nome: "", id: "" },
+            },
+          },
+        ],
+        contatos: [{ tipo: "", valor: "" }],
+      };
+  
   const {
     register,
     control,
@@ -39,43 +77,16 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
     setValue,
     watch
   } = useForm({
-    defaultValues: dadosIniciais || {
-      nome: "",
-      cpf: "",
-      dataNascimento: "",
-      enderecos: [
-        {
-          logradouro: "",
-          numero: "",
-          complemento: "",
-          cep: "",
-          cidade: {
-            nome: "",
-            estado: {
-              nome: "",
-              sigla: "",
-              pais: { nome: "", id: "" },
-            },
-            pais: { nome: "", id: "" },
-          },
-        },
-      ],
-      contatos: [
-        {
-          tipo: "",
-          valor: "",
-        },
-      ],
-    },
+    defaultValues: formDefaults
   });
 
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
-      if (type === "change" && name?.includes("cidade.estado.pais")) {
-        const match = name.match(/^enderecos\.(\d+)\.cidade\.estado\.pais$/);
+      if (type === "change" && name?.includes("cidade.pais")) {
+        const match = name.match(/^enderecos\.(\d+)\.cidade\.pais$/);
         if (match) {
           const index = match[1];
-          const pais = value.enderecos?.[index]?.cidade?.estado?.pais;
+          const pais = value.enderecos?.[index]?.cidade?.pais;
           const paisId = pais?.id;
   
           loadEstados(paisId);
@@ -152,7 +163,7 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
 
       <Typography variant="h6" mt={4}>Endereços</Typography>
       {enderecosFields.map((field, index) => {
-        const paisSelecionado = watch(`enderecos.${index}.cidade.estado.pais.id`);
+        const paisSelecionado = watch(`enderecos.${index}.cidade.pais.id`);
 
         return (
           <Paper key={field.id} sx={{ p: 2, mb: 2 }} elevation={3}>
@@ -164,25 +175,31 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
 
             <Grid container spacing={2} marginTop={2}>
               <Grid item size={{ xs: 12, md: 6 }}>
-                  <Controller
-                    control={control}
-                    name={`enderecos.${index}.cidade.estado.pais`}
-                    rules={{ required: true }}
-                    render={({ field: { onChange, value } }) => (
-                      <Autocomplete
-                        fullWidth
-                        options={paises}
-                        getOptionLabel={(option) => option.nome || ""}
-                        value={value}
-                        onChange={(_, newValue) => {
-                          onChange({ nome: newValue?.nome || "", id: newValue?.id || "" });
-                        }}
-                        renderInput={(params) => (
-                          <TextField {...params} label="País" error={!!errors.enderecos?.[index]?.cidade?.estado?.pais} helperText={errors.enderecos?.[index]?.cidade?.estado?.pais && "Campo obrigatório"} />
-                        )}
-                      />
-                    )}
-                  />
+                <Controller
+                  control={control}
+                  name={`enderecos.${index}.cidade.pais`}
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value } }) => (
+                    <Autocomplete
+                      fullWidth
+                      options={paises}
+                      getOptionLabel={(option) => option.nome || ""}
+                      value={paises.find(p => p.id === value?.id) || null} // Garantir que o valor corresponde ao país selecionado
+                      onChange={(_, newValue) => {
+                        // Verificar se um valor foi selecionado e garantir que o objeto tenha a estrutura correta
+                        onChange(newValue || { id: "", nome: "" });
+                      }}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          label="País"
+                          error={!!errors.enderecos?.[index]?.cidade?.pais}
+                          helperText={errors.enderecos?.[index]?.cidade?.pais && "Campo obrigatório"}
+                        />
+                      )}
+                    />
+                  )}
+                />
               </Grid>
 
               <Grid item size={{ xs: 6, md: 6 }}>
@@ -273,17 +290,24 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
           <Paper key={field.id} sx={{ p: 2, mb: 2 }} elevation={3}>
             <Grid container spacing={2}>
               <Grid item size={{ xs: 12, md: 4 }}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Tipo"
-                  {...register(`contatos.${index}.tipo`, { required: true })}
-                  error={!!errors.contatos?.[index]?.tipo}
-                  helperText={errors.contatos?.[index]?.tipo && "Campo obrigatório"}
-                >
-                  <MenuItem value="email">Email</MenuItem>
-                  <MenuItem value="telefone">Telefone</MenuItem>
-                </TextField>
+                <Controller
+                  control={control}
+                  name={`contatos.${index}.tipo`}
+                  rules={{ required: true }}
+                  render={({ field }) => (
+                    <TextField
+                      select
+                      fullWidth
+                      label="Tipo"
+                      {...field}
+                      error={!!errors.contatos?.[index]?.tipo}
+                      helperText={errors.contatos?.[index]?.tipo && "Campo obrigatório"}
+                    >
+                      <MenuItem value="email">Email</MenuItem>
+                      <MenuItem value="telefone">Telefone</MenuItem>
+                    </TextField>
+                  )}
+                />
               </Grid>
             </Grid>
 
