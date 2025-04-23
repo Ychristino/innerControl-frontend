@@ -22,20 +22,20 @@ import { formatDate } from "../../utils/format";
 
 export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
   const [confirmDialog, setConfirmDialog] = useState({ open: false, onConfirm: null });
-  const [paises, setPaises] = useState([]);
+  const [paises, setPaises] = useState([]);  
   const [estadosMap, setEstadosMap] = useState({});
 
   useEffect(() => {
     paisService.getAllNoPaginated()
       .then((response) => {
-        setPaises(response.data.content)
+        setPaises(response.data)
       })
   }, []);
 
   const normalizeContatos = (contatos = []) => {
     return contatos.map((contato) => ({
       ...contato,
-      tipo: contato.tipo?.toLowerCase(), // "email" ou "telefone"
+      tipo: contato.tipo?.toLowerCase(),
     }));
   };
   
@@ -184,7 +184,7 @@ export default function FormularioPessoa({ dadosIniciais = null, onSubmit }) {
                       fullWidth
                       options={paises}
                       getOptionLabel={(option) => option.nome || ""}
-                      value={paises.find(p => p.id === value?.id) || null} // Garantir que o valor corresponde ao país selecionado
+                      value={value?.id ? paises.find(p => p.id === value.id) || null : null}
                       onChange={(_, newValue) => {
                         // Verificar se um valor foi selecionado e garantir que o objeto tenha a estrutura correta
                         onChange(newValue || { id: "", nome: "" });

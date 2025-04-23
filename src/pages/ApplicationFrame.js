@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import { createTheme } from '@mui/material/styles';
 import { AppProvider } from '@toolpad/core/AppProvider';
@@ -21,7 +21,7 @@ import { handleSubmit as pessoaFisicaSubmit, handleUpdate as pessoaFisicaUpdate 
 import { handleSubmit as produtoSubmit, handleUpdate as produtoUpdate } from '../controllers/produto';
 import { handleSubmit as servicoSubmit, handleUpdate as servicoUpdate } from '../controllers/servico';
 import SnackbarMessage from '../components/snackBarMessage';
-import { Slide } from '@mui/material';
+import { Button, Slide } from '@mui/material';
 import ListaPessoas from './pessoaFisica/list';
 import PessoaFisicaUpdate from './pessoaFisica/udpate';
 import ListaProdutos from './produto/list';
@@ -30,6 +30,10 @@ import ListagemEstoque from './estoque/list';
 import { handleChangeQuantity as handleChangeQuantityEstoque } from '../controllers/estoque';
 import ListaServicos from './servico/list';
 import ServicoUpdate from './servico/update';
+import PrivateRoute from './auth/PrivateRoute';
+import LoginPage from './auth/LoginPage';
+import { AuthProvider } from './auth/AuthContext';
+import { useAuth } from './auth/AuthContext';
 
 const mainTheme = createTheme({
   cssVariables: {
@@ -48,13 +52,29 @@ const mainTheme = createTheme({
 });
 
 function SidebarFooter({ mini }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   return (
-    <Typography
-      variant="caption"
-      sx={{ m: 1, whiteSpace: 'nowrap', overflow: 'hidden' }}
-    >
-      {mini ? 'InnerControl' : `InnerControl - Controle de serviços`}
-    </Typography>
+    <div style={{ margin: '8px', whiteSpace: 'wrap', overflow: 'hidden' }}>
+      <Typography variant="caption">
+        {mini ? 'InnerControl' : 'InnerControl - Controle de serviços'}
+      </Typography>
+      <Button
+        onClick={handleLogout}
+        color="error"
+        size="small"
+        fullWidth
+        sx={{ mt: 1 }}
+      >
+        Logout
+      </Button>
+    </div>
   );
 }
 
@@ -118,117 +138,120 @@ export default function ApplicationNavigation() {
   };
 
   return (
-    <Router>
-      <AppProvider
-        branding={{
-          logo: <></>,
-          title: 'InnerControl',
-          homeUrl: '/',
-        }}
-        navigation={[
-          {
-            segment: 'pessoafisica',
-            title: 'Pessoa Física',
-            icon: <PersonIcon />,
-            children: [
-              {
-                segment: 'cadastro',
-                title: 'Cadastrar Pessoa',
-                icon: <AddIcon />,
-                link: 'cadastro',
-              },
-              {
-                segment: 'lista',
-                title: 'Listar Pessoas',
-                icon: <ListIcon />,
-                link: 'lista',
-              },
-            ],
-          },
-          {
-            segment: 'produtos',
-            title: 'Produtos',
-            icon: <CategoryIcon />,
-            children: [
-              {
-                segment: 'cadastro',
-                title: 'Cadastrar Produto',
-                icon: <AddIcon />,
-                link: 'cadastro',
-              },
-              {
-                segment: 'lista',
-                title: 'Listar Produtos',
-                icon: <ListIcon />,
-                link: 'lista',
-              },
-            ],
-          },
-          {
-            segment: 'estoque',
-            title: 'Estoque',
-            icon: <InventoryIcon />,
-            children: [
-              {
-                segment: 'lista',
-                title: 'Listar Estoque',
-                icon: <ListIcon />,
-                link: 'lista',
-              },
-            ],
-          },
-          {
-            segment: 'servicos',
-            title: 'Serviço',
-            icon: <ConstructionIcon />,
-            children: [
-              {
-                segment: 'cadastro',
-                title: 'Cadastrar Serviço',
-                icon: <AddIcon />,
-                link: 'cadastro',
-              },
-              {
-                segment: 'lista',
-                title: 'Listar Serviços',
-                icon: <ListIcon />,
-                link: 'lista',
-              },
-            ],
-          },
-        ]}
-        theme={mainTheme}
-      >
-        <DashboardLayout
-          slots={{
-            sidebarFooter: SidebarFooter,
+    <AuthProvider>
+      <Router>
+        <AppProvider
+          branding={{
+            logo: <></>,
+            title: 'InnerControl',
+            homeUrl: '/',
           }}
+          navigation={[
+            {
+              segment: 'pessoafisica',
+              title: 'Pessoa Física',
+              icon: <PersonIcon />,
+              children: [
+                {
+                  segment: 'cadastro',
+                  title: 'Cadastrar Pessoa',
+                  icon: <AddIcon />,
+                  link: 'cadastro',
+                },
+                {
+                  segment: 'lista',
+                  title: 'Listar Pessoas',
+                  icon: <ListIcon />,
+                  link: 'lista',
+                },
+              ],
+            },
+            {
+              segment: 'produtos',
+              title: 'Produtos',
+              icon: <CategoryIcon />,
+              children: [
+                {
+                  segment: 'cadastro',
+                  title: 'Cadastrar Produto',
+                  icon: <AddIcon />,
+                  link: 'cadastro',
+                },
+                {
+                  segment: 'lista',
+                  title: 'Listar Produtos',
+                  icon: <ListIcon />,
+                  link: 'lista',
+                },
+              ],
+            },
+            {
+              segment: 'estoque',
+              title: 'Estoque',
+              icon: <InventoryIcon />,
+              children: [
+                {
+                  segment: 'lista',
+                  title: 'Listar Estoque',
+                  icon: <ListIcon />,
+                  link: 'lista',
+                },
+              ],
+            },
+            {
+              segment: 'servicos',
+              title: 'Serviço',
+              icon: <ConstructionIcon />,
+              children: [
+                {
+                  segment: 'cadastro',
+                  title: 'Cadastrar Serviço',
+                  icon: <AddIcon />,
+                  link: 'cadastro',
+                },
+                {
+                  segment: 'lista',
+                  title: 'Listar Serviços',
+                  icon: <ListIcon />,
+                  link: 'lista',
+                },
+              ],
+            },
+          ]}
+          theme={mainTheme}
         >
-          <AppRoutes showSnackbar={showSnackbar}/>
-          {snackbars.map((snack, index) => (
-            <SnackbarMessage 
-              key={snack.id}
-              open={snack.open}
-              message={snack.message}
-              severity={snack.severity}
-              onClose={() => handleCloseSnackbar(snack.id)}
-              onExited={() => handleExited(snack.id)}
-              TransitionComponent={SlideTransition}
-              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-              sx={{
-                top: `${8 + index * 70}px`,
-              }}
-            />
-          ))}
-        </DashboardLayout>
-      </AppProvider>
-    </Router>
+          <DashboardLayout
+            slots={{
+              sidebarFooter: SidebarFooter,
+            }}
+          >
+            <AppRoutes showSnackbar={showSnackbar}/>
+            {snackbars.map((snack, index) => (
+              <SnackbarMessage 
+                key={snack.id}
+                open={snack.open}
+                message={snack.message}
+                severity={snack.severity}
+                onClose={() => handleCloseSnackbar(snack.id)}
+                onExited={() => handleExited(snack.id)}
+                TransitionComponent={SlideTransition}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                sx={{
+                  top: `${8 + index * 70}px`,
+                }}
+              />
+            ))}
+          </DashboardLayout>
+        </AppProvider>
+      </Router>
+    </AuthProvider>
   );
 }
 
 function AppRoutes( {showSnackbar} ){
   const navigate = useNavigate();
   const [routeKey, setRouteKey] = useState(Date.now());
+  const { isAuthenticated } = useAuth();
 
   const resetView = () => {
     setRouteKey(Date.now());
@@ -237,74 +260,136 @@ function AppRoutes( {showSnackbar} ){
 
   return (
   <Routes>
-    <Route path="/pessoafisica" element={<PessoaFisicaIndex />} />
-    <Route path="/produtos" element={<ProdutoIndex />} />
-    <Route path="/servicos" element={<ServicoIndex />} />
-    <Route path="/estoque" element={<EstoqueIndex />} />
-    <Route path="/pessoafisica/cadastro" element={<PessoaFisicaForm 
-                                                    onSubmit={(data) => 
-                                                              pessoaFisicaSubmit(data, 
-                                                                             showSnackbar, 
-                                                                             ()=> navigate('/pessoaFisica')
-                                                                             )
-                                                              }
-                                                    />} 
+    <Route path="/login" element={
+      isAuthenticated ? <Navigate to="/" /> : <LoginPage />
+      } 
     />
-    <Route path="/pessoafisica/udpate/:id" element={<PessoaFisicaUpdate
-                                                      onSubmit={(data) => 
-                                                                  pessoaFisicaUpdate(data, 
-                                                                                     showSnackbar, 
-                                                                                     ()=> navigate('/pessoaFisica/lista')
-                                                                                    )
-                                                                }
-                                                    />} 
+    
+    <Route path="/pessoafisica" element={
+      <PrivateRoute>
+        <PessoaFisicaIndex />
+      </PrivateRoute>
+      } 
     />
-    <Route path="/produtos/cadastro" element={<ProdutoForm 
-                                                    onSubmit={(data) => 
-                                                                produtoSubmit(data, 
-                                                                             showSnackbar, 
-                                                                             ()=> navigate('/produtos')
-                                                                             )
-                                                              }
-                                                    />} 
+    <Route path="/produtos" element={
+      <PrivateRoute>
+        <ProdutoIndex />
+      </PrivateRoute>
+      } 
     />
-    <Route path="/produtos/update/:id" element={<ProdutoUpdate 
-                                                    onSubmit={(data) => 
-                                                                produtoUpdate(data, 
-                                                                             showSnackbar, 
-                                                                             ()=> navigate('/produtos/lista')
-                                                                             )
-                                                              }
-                                                    />} 
+    <Route path="/servicos" element={
+      <PrivateRoute>
+        <ServicoIndex />  
+      </PrivateRoute>
+      } 
     />
-    <Route path="/estoque/lista" element={<ListagemEstoque
-                                              key={routeKey} 
-                                              onChangeQuantity={(data)=> 
-                                                handleChangeQuantityEstoque(data,
-                                                                            showSnackbar, 
-                                                                            resetView)
-                                                }
-                                          />} 
+    <Route path="/estoque" element={
+      <PrivateRoute>
+        <EstoqueIndex />
+      </PrivateRoute>
+      } 
     />
-    <Route path="/servicos/cadastro" element={<ServicoForm onSubmit={(data) => 
-                                                                servicoSubmit(data, 
-                                                                             showSnackbar, 
-                                                                             ()=> navigate('/servicos')
-                                                                             )
-                                                              }
-                                                    />} 
+    
+    <Route path="/pessoafisica/cadastro" element={
+      <PrivateRoute>
+        <PessoaFisicaForm onSubmit={(data) =>
+                                    pessoaFisicaSubmit(data,
+                                    showSnackbar,
+                                    ()=> navigate('/pessoaFisica')
+                                    )
+        }
+      />
+      </PrivateRoute>
+      } 
     />
-    <Route path="/servicos/update/:id" element={<ServicoUpdate 
-                                                    onSubmit={(data) => 
-                                                                servicoUpdate(data, 
-                                                                              showSnackbar, 
-                                                                              ()=> navigate('/servicos/lista')
-                                                                             )
-                                                              }
-                                                    />} 
+    <Route path="/pessoafisica/udpate/:id" element={
+      <PrivateRoute>
+        <PessoaFisicaUpdate onSubmit={(data) => 
+                              pessoaFisicaUpdate(data, 
+                              showSnackbar, 
+                              ()=> navigate('/pessoaFisica/lista')
+                              )
+                            }
+        />
+      </PrivateRoute>
+      } 
     />
-  <Route path="/pessoafisica/lista" element={<ListaPessoas />} />
-  <Route path="/produtos/lista" element={<ListaProdutos />} />
-  <Route path="/servicos/lista" element={<ListaServicos />} />
+    <Route path="/produtos/cadastro" element={
+      <PrivateRoute>
+        <ProdutoForm onSubmit={(data) => 
+                                produtoSubmit(data, 
+                                showSnackbar, 
+                                ()=> navigate('/produtos')
+                                )
+                              }
+        />
+      </PrivateRoute>
+      } 
+    />
+    <Route path="/produtos/update/:id" element={
+      <PrivateRoute>
+        <ProdutoUpdate onSubmit={(data) =>
+                                  produtoUpdate(data, 
+                                  showSnackbar, 
+                                  ()=> navigate('/produtos/lista')
+                                  )
+                                }
+        />
+      </PrivateRoute>
+      } 
+    />
+    <Route path="/estoque/lista" element={
+      <PrivateRoute>
+        <ListagemEstoque key={routeKey} 
+                         onChangeQuantity={(data)=> 
+                                            handleChangeQuantityEstoque(data,
+                                            showSnackbar, 
+                                            resetView)
+                                          }
+        />
+      </PrivateRoute>
+      } 
+    />
+    <Route path="/servicos/cadastro" element={
+      <PrivateRoute>
+        <ServicoForm onSubmit={(data) =>
+                                servicoSubmit(data, 
+                                showSnackbar, 
+                                ()=> navigate('/servicos')
+                                )
+                              }
+        />
+      </PrivateRoute>
+      } 
+    />
+    <Route path="/servicos/update/:id" element={
+      <PrivateRoute>
+        <ServicoUpdate onSubmit={(data) =>
+                                  servicoUpdate(data, 
+                                  showSnackbar, 
+                                  ()=> navigate('/servicos/lista')
+                                  )
+                                }
+        />
+      </PrivateRoute>} 
+    />
+  <Route path="/pessoafisica/lista" element={
+    <PrivateRoute>
+      <ListaPessoas />
+    </PrivateRoute>
+    } 
+  />
+  <Route path="/produtos/lista" element={
+    <PrivateRoute>
+      <ListaProdutos />
+    </PrivateRoute>
+    } 
+  />
+  <Route path="/servicos/lista" element={
+    <PrivateRoute>
+      <ListaServicos />
+    </PrivateRoute>
+    } 
+  />
   </Routes>
 )}
