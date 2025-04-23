@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:8080', // ajuste conforme necessário
+  baseURL: 'https://innercontrol.onrender.com', // ajuste conforme necessário
 });
 
 // Intercepta cada requisição e injeta o token, se existir
