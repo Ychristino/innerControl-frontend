@@ -1,15 +1,15 @@
 {
   "files": {
-    "main.css": "/innercontrol-frontend/static/css/main.c707041f.css",
-    "main.js": "/innercontrol-frontend/static/js/main.7dd6d7e1.js",
-    "static/js/453.ae6b500f.chunk.js": "/innercontrol-frontend/static/js/453.ae6b500f.chunk.js",
-    "index.html": "/innercontrol-frontend/index.html",
-    "main.c707041f.css.map": "/innercontrol-frontend/static/css/main.c707041f.css.map",
-    "main.7dd6d7e1.js.map": "/innercontrol-frontend/static/js/main.7dd6d7e1.js.map",
-    "453.ae6b500f.chunk.js.map": "/innercontrol-frontend/static/js/453.ae6b500f.chunk.js.map"
+    "main.css": "/innerControl-frontend/static/css/main.c707041f.css",
+    "main.js": "/innerControl-frontend/static/js/main.597af80f.js",
+    "static/js/453.ae6b500f.chunk.js": "/innerControl-frontend/static/js/453.ae6b500f.chunk.js",
+    "index.html": "/innerControl-frontend/index.html",
+    "main.c707041f.css.map": "/innerControl-frontend/static/css/main.c707041f.css.map",
+    "main.597af80f.js.map": "/innerControl-frontend/static/js/main.597af80f.js.map",
+    "453.ae6b500f.chunk.js.map": "/innerControl-frontend/static/js/453.ae6b500f.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.c707041f.css",
-    "static/js/main.7dd6d7e1.js"
+    "static/js/main.597af80f.js"
   ]
 }
