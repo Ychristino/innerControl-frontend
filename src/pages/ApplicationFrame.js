@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import Typography from '@mui/material/Typography';
 import { createTheme } from '@mui/material/styles';
 import { AppProvider } from '@toolpad/core/AppProvider';
