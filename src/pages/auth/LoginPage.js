@@ -85,13 +85,13 @@ const LoginPage = () => {
           </Grid>
         </form>
 
-        <Grid container justifyContent="flex-end" sx={{ mt: 2 }}>
+        {/* <Grid container justifyContent="flex-end" sx={{ mt: 2 }}>
           <Grid item>
             <Typography variant="body2" color="textSecondary">
               Não tem uma conta? <Button color="primary">Cadastrar</Button>
             </Typography>
           </Grid>
-        </Grid>
+        </Grid> */}
       </Box>
     </Container>
   );
