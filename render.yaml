@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: meu-app-react
+    env: docker
+    plan: free  # ou standard, dependendo da sua necessidade
+    dockerfilePath: ./Dockerfile
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: NODE_ENV
+        value: production
