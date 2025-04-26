@@ -116,7 +116,7 @@ function Estoque() {
 
 function Logger() {
   const location = useLocation();
-
+  preventDefault()
   useEffect(() => {
     console.log("Rota acessada:", location.pathname);
   }, [location]);
