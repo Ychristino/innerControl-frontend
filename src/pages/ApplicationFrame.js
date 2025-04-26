@@ -113,6 +113,16 @@ function Estoque() {
   return <Typography>Lista de Estoque</Typography>;
 }
 
+
+function Logger() {
+  const location = useLocation();
+
+  useEffect(() => {
+    console.log("Rota acessada:", location.pathname);
+  }, [location]);
+
+}
+
 export default function ApplicationNavigation() {
 
   const [snackbars, setSnackbars] = useState([]);
@@ -140,6 +150,7 @@ export default function ApplicationNavigation() {
   return (
     <AuthProvider>
       <Router>
+        <Logger />
         <AppProvider
           branding={{
             logo: <></>,
@@ -257,7 +268,6 @@ function AppRoutes( {showSnackbar} ){
     setRouteKey(Date.now());
   };
 
-
   return (
   <Routes>
     <Route path="/login" element={
@@ -295,7 +305,7 @@ function AppRoutes( {showSnackbar} ){
         <PessoaFisicaForm onSubmit={(data) =>
                                     pessoaFisicaSubmit(data,
                                     showSnackbar,
-                                    ()=> navigate('/pessoaFisica')
+                                    ()=> navigate('/pessoafisica')
                                     )
         }
       />
@@ -307,7 +317,7 @@ function AppRoutes( {showSnackbar} ){
         <PessoaFisicaUpdate onSubmit={(data) => 
                               pessoaFisicaUpdate(data, 
                               showSnackbar, 
-                              ()=> navigate('/pessoaFisica/lista')
+                              ()=> navigate('/pessoafisica/lista')
                               )
                             }
         />
@@ -391,5 +401,6 @@ function AppRoutes( {showSnackbar} ){
     </PrivateRoute>
     } 
   />
+  <Route path="*" element={<p>Não tem nada aqui... sai pianinho</p>} />
   </Routes>
 )}
