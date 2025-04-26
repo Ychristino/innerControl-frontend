@@ -23,7 +23,7 @@ import { handleSubmit as servicoSubmit, handleUpdate as servicoUpdate } from '..
 import SnackbarMessage from '../components/snackBarMessage';
 import { Button, Slide } from '@mui/material';
 import ListaPessoas from './pessoaFisica/list';
-import PessoaFisicaUpdate from './pessoaFisica/udpate';
+import PessoaFisicaUpdate from './pessoaFisica/update';
 import ListaProdutos from './produto/list';
 import ProdutoUpdate from './produto/update';
 import ListagemEstoque from './estoque/list';
@@ -166,13 +166,13 @@ export default function ApplicationNavigation() {
                   segment: 'cadastro',
                   title: 'Cadastrar Pessoa',
                   icon: <AddIcon />,
-                  link: 'cadastro',
+                  link: '/pessoafisica/cadastro',
                 },
                 {
                   segment: 'lista',
                   title: 'Listar Pessoas',
                   icon: <ListIcon />,
-                  link: 'lista',
+                  link: '/pessoafisica/lista',
                 },
               ],
             },
@@ -185,13 +185,13 @@ export default function ApplicationNavigation() {
                   segment: 'cadastro',
                   title: 'Cadastrar Produto',
                   icon: <AddIcon />,
-                  link: 'cadastro',
+                  link: '/produtos/cadastro',
                 },
                 {
                   segment: 'lista',
                   title: 'Listar Produtos',
                   icon: <ListIcon />,
-                  link: 'lista',
+                  link: '/produtos/lista',
                 },
               ],
             },
@@ -204,7 +204,7 @@ export default function ApplicationNavigation() {
                   segment: 'lista',
                   title: 'Listar Estoque',
                   icon: <ListIcon />,
-                  link: 'lista',
+                  link: '/estoque/lista',
                 },
               ],
             },
@@ -217,13 +217,13 @@ export default function ApplicationNavigation() {
                   segment: 'cadastro',
                   title: 'Cadastrar Serviço',
                   icon: <AddIcon />,
-                  link: 'cadastro',
+                  link: '/servicos/cadastro',
                 },
                 {
                   segment: 'lista',
                   title: 'Listar Serviços',
                   icon: <ListIcon />,
-                  link: 'lista',
+                  link: '/servicos/lista',
                 },
               ],
             },
@@ -400,6 +400,7 @@ function AppRoutes( {showSnackbar} ){
     </PrivateRoute>
     } 
   />
-  <Route path="*" element={<p>Não tem nada aqui... sai pianinho</p>} />
+
+  <Route path="*" element={<Typography variant="h4" color="error">404 - Página não encontrada</Typography>} />
   </Routes>
 )}
