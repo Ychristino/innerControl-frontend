@@ -401,6 +401,9 @@ function AppRoutes( {showSnackbar} ){
     } 
   />
 
-  <Route path="*" element={<Typography variant="h4" color="error">404 - Página não encontrada</Typography>} />
+  <Route path="*" element={
+      isAuthenticated ? <Navigate to="/" /> : <LoginPage />
+      } 
+  /> 
   </Routes>
 )}
